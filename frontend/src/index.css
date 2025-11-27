@@ -1,0 +1,8 @@
+@import "tailwindcss";
+/* Add to your index.css or App.css */
+body {
+  scrollbar-width: none;
+}
+body::-webkit-scrollbar {
+  display: none;
+}
