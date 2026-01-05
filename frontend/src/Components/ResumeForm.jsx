@@ -26,7 +26,7 @@ const ResumeForm = () => {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:500/api/analyze", {
+      const res = await fetch("https://jobify-ai-7m7h.onrender.com/api/analyze", {
         method: "POST",
         body: formData
       });
