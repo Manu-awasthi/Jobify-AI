@@ -1,13 +1,18 @@
 import mongoose from "mongoose";
 
-const analysisSchema = new mongoose.Schema({
-  jobText: { type: String, },
-  resumeText: { type: String, required: true },
-  score: { type: Number , default:0},
-  skillMatch: { type: [String], default:[]},
-  feedBack: { type: String},
-  createdAt: { type: Date, default: Date.now },
-});
+const analyzeSchema = new mongoose.Schema(
+  {
+    jobText: String,
+    resumeText: String,
+    score: Number,
+    matchedSkills: [String],
+    missingSkills: [String],
+    skillMatchPercentage: Number,
+    feedback: String
+  },
+  { timestamps: true }
+);
 
-const Analysis = mongoose.model("Analysis", analysisSchema);
+const Analysis = mongoose.model("Analysis", analyzeSchema);
+
 export default Analysis;

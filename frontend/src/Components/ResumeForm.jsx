@@ -1,18 +1,21 @@
 import React, { useState } from "react";
 import { Loader2 } from "lucide-react";
-
-import Navbar from './Navbar'
+import Navbar from "./Navbar";
 
 const ResumeForm = () => {
   const [jobText, setJobText] = useState("");
   const [file, setFile] = useState(null);
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!file || !jobText) {
-      alert("Please fill all fields and upload a resume!");
+    setError("");
+    setResult(null);
+
+    if (!file || !jobText.trim()) {
+      setError("Please upload a resume and paste the job description.");
       return;
     }
 
@@ -20,111 +23,156 @@ const ResumeForm = () => {
     formData.append("jobText", jobText);
     formData.append("resume", file);
 
-    setResult(null);
     setLoading(true);
 
     try {
       const res = await fetch("http://localhost:500/api/analyze", {
         method: "POST",
-        body: formData,
+        body: formData
       });
 
       const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Analysis failed");
+      }
+
       setResult(data);
     } catch (err) {
-      console.error(err);
-      alert("Failed to analyze resume");
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-   <>
-   <Navbar/>
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white px-4">
-      <div className="w-full max-w-2xl bg-gray-800/60 backdrop-blur-md border border-gray-700 rounded-2xl shadow-xl p-8">
-        <h2 className="text-3xl font-extrabold text-center mb-6 bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent tracking-wide">
-          JOBIFY-AI
-        </h2>
-        <p className="text-gray-400 text-center mb-8">
-          Upload your resume and paste the job description — let AI do the rest!
-        </p>
+    <>
+      <Navbar />
 
-        <form
-          onSubmit={handleSubmit}
-          encType="multipart/form-data"
-          className="flex flex-col space-y-6"
-        >
-          {/* Job Description */}
-          <div>
-            <label className="block text-gray-300 mb-2 font-medium">
-              Job Description
-            </label>
-            <textarea
-              name="job_description"
-              value={jobText}
-              onChange={(e) => setJobText(e.target.value)}
-              rows="6"
-              className="w-full p-3 rounded-lg bg-gray-900 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-gray-200 placeholder-gray-500"
-              placeholder="Paste the job description here..."
-            ></textarea>
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white px-4">
+        <div className="w-full max-w-3xl bg-gray-800/60 backdrop-blur-md border border-gray-700 rounded-2xl shadow-xl p-8">
 
-          {/* Resume Upload */}
-          <div>
-            <label className="block text-gray-300 mb-2 font-medium">
-              Upload Resume (PDF or DOCX)
-            </label>
-            <input
-              type="file"
-              onChange={(e) => setFile(e.target.files[0])}
-              className="block w-full text-sm text-gray-300
-                         file:mr-4 file:py-2 file:px-4
-                         file:rounded-lg file:border-0
-                         file:text-sm file:font-semibold
-                         file:bg-gradient-to-r file:from-blue-600 file:to-cyan-500
-                         hover:file:from-blue-700 hover:file:to-cyan-600
-                         file:text-white cursor-pointer"
-            />
-          </div>
+          <h2 className="text-3xl font-extrabold text-center mb-2 bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+            JOBIFY-AI
+          </h2>
+          <p className="text-gray-400 text-center mb-8">
+            Upload your resume and paste the job description — let AI analyze your fit.
+          </p>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="mt-2 w-full py-3 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 
-                       text-white font-semibold rounded-lg shadow-lg transition-all duration-300 flex items-center justify-center"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="animate-spin mr-2 h-5 w-5" /> Analyzing...
-              </>
-            ) : (
-              "Analyze Resume"
-            )}
-          </button>
-        </form>
+          {/* -------- FORM -------- */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Job Description */}
+            <div>
+              <label className="block text-gray-300 mb-2 font-medium">
+                Job Description
+              </label>
+              <textarea
+                value={jobText}
+                onChange={(e) => setJobText(e.target.value)}
+                rows="6"
+                className="w-full p-3 rounded-lg bg-gray-900 border border-gray-700 focus:ring-2 focus:ring-blue-500 resize-none text-gray-200"
+                placeholder="Paste the job description here..."
+              />
+            </div>
 
-        {/* Result Section */}
-        {result && (
-          <div className="mt-8 bg-gray-900/70 border border-gray-700 rounded-xl p-6">
-            <h3 className="text-xl font-semibold text-blue-400 mb-3">
-              🔍 Analysis Result
-            </h3>
-            <p className="text-gray-300">
-              <strong>Score:</strong> {result.score || "N/A"}%
-            </p>
-            <p className="text-gray-300 mt-1">
-              <strong>Skills Found:</strong> {result.skillMatch || "None"}
-            </p>
-            <p className="text-gray-300 mt-1">
-              <strong>Feedback:</strong> {result.feedBack || "No feedback"}
-            </p>
-          </div>
-        )}
+            {/* Resume Upload */}
+            <div>
+              <label className="block text-gray-300 mb-2 font-medium">
+                Upload Resume (PDF)
+              </label>
+              <input
+                type="file"
+                accept=".pdf"
+                onChange={(e) => setFile(e.target.files[0])}
+                className="block w-full text-sm text-gray-300
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-lg file:border-0
+                  file:bg-gradient-to-r file:from-blue-600 file:to-cyan-500
+                  hover:file:from-blue-700 hover:file:to-cyan-600
+                  file:text-white cursor-pointer"
+              />
+            </div>
+
+            {/* Error */}
+            {error && <p className="text-red-400">{error}</p>}
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 
+                         rounded-lg font-semibold flex justify-center items-center"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="animate-spin mr-2 h-5 w-5" />
+                  Analyzing...
+                </>
+              ) : (
+                "Analyze Resume"
+              )}
+            </button>
+          </form>
+
+          {/* -------- RESULT -------- */}
+          {result && (
+            <div className="mt-10 bg-gray-900/70 border border-gray-700 rounded-xl p-6 space-y-4">
+
+              <h3 className="text-xl font-semibold text-blue-400">
+                📊 Analysis Result
+              </h3>
+
+              <p>
+                <strong>Resume Score:</strong>{" "}
+                <span className="text-green-400">{result.score}/100</span>
+              </p>
+
+              <p>
+                <strong>Skill Match:</strong>{" "}
+                <span className="text-cyan-400">
+                  {result.skillMatchPercentage}%
+                </span>
+              </p>
+
+              {/* Matched Skills */}
+              <div>
+                <strong className="block mb-1">Matched Skills</strong>
+                <div className="flex flex-wrap gap-2">
+                  {result.matchedSkills.map((skill, i) => (
+                    <span
+                      key={i}
+                      className="px-3 py-1 bg-green-600/20 text-green-400 rounded-full text-sm"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Missing Skills */}
+              <div>
+                <strong className="block mb-1">Missing Skills</strong>
+                <div className="flex flex-wrap gap-2">
+                  {result.missingSkills.map((skill, i) => (
+                    <span
+                      key={i}
+                      className="px-3 py-1 bg-red-600/20 text-red-400 rounded-full text-sm"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Feedback */}
+              <div>
+                <strong>Feedback</strong>
+                <p className="text-gray-300 mt-1">{result.feedback}</p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
     </>
   );
 };
